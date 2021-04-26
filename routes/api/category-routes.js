@@ -7,12 +7,10 @@ router.get('/', async (req, res) => {
   // find all categories
   try {
     const categoryData = await Category.findAll({
-      include: {
-        model: Product,
-      }
+      include: [{ model: Product }],
     });
 
-    res.status(200).json(catagoryData);
+    res.status(200).json(categoryData);
   } catch (err) {
     res.status(500).json(err);
   }
@@ -22,12 +20,12 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   // find one category by its `id` value
   try {
-    const categoryData = await Category.findByPk(req.params.id, {
+    const category = await Category.findByPk(req.params.id, {
 
-      include: [{ model: Product, through: Category, as: 'category_id' }]
+      include: [{ model: Product }]
     });
 
-    if (!categoryData) {
+    if (!category) {
       res.status(404).json({ message: 'No category found with this id!' });
       return;
     }
@@ -42,7 +40,7 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
   // create a new category
   try {
-    const categoryData = await Category.create(req.body);
+    const categoryDa = await Category.create(req.body);
     res.status(200).json(categoryData);
   } catch (err) {
     res.status(400).json(err);
@@ -51,21 +49,38 @@ router.post('/', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   // update a category by its `id` value
-  Category.update(req.body, {
-    where: {
-      id: req.params.id,
-    },
-  })
+  try {
+    const category = await Category.update(req.body, {
+      where: {
+        id: req.params.id,
+      },
+    }),
+    if (!category) {
+      res.status(404).json({ message: "No location found" });
+      return;
+    }
+    res.status(200).json(category);
+  } catch (error) {
+    res.status(400).json(err);
+  }
 });
 
 router.delete('/:id', async (req, res) => {
   // delete a category by its `id` value
-  Category.delete({ where: { category_id: req.params.category_id } })
-    .then(() => res.end())
-    .catch(err => {
-      console.log(err);
-      res.sendStatus(400);
-    })
+  try {
+    const category = await Category.destroy({
+      where: {
+        id: req.params.id,
+      },
+    }),
+    if (!category) {
+      res.status(404).json({ message: "No location found with this id" });
+      return;
+    }
+    res.status(200).json(category);
+  } catch (error) {
+    res.status(500).json(err);
+  }
 });
 
 module.exports = router;
