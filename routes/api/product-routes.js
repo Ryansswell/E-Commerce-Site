@@ -4,7 +4,7 @@ const { Product, Category, Tag, ProductTag } = require('../../models');
 // The `/api/products` endpoint
 
 // get all products
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   // find all products
   try {
     const productData = await Product.findAll();
@@ -12,15 +12,15 @@ router.get('/', (req, res) => {
   } catch (err) {
     res.status(500).json(err);
   }
-  // be sure to include its associated Category and Tag data
+  // *****be sure to include its associated Category and Tag data
 });
 
 // get one product
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   // find a single product by its `id`
   try {
     const productData = await Product.findByPk(req.params.id, {
-    
+
       include: [{ model: Category, through: Tag, as: 'product_id' }]
     });
 
@@ -31,21 +31,35 @@ router.get('/:id', (req, res) => {
 
     res.status(200).json(productData);
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({err: "unexpected error"});
   }
   // be sure to include its associated Category and Tag data
 });
 
 // create new product
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   /* req.body should look like this...   */
+  try {
+    const user = await User.create({
+      id: req.body.id,
+      product_name: req.body.product_id,
+      price: req.body.price,
+      stock: req.body.stock,
+      category_id: req.body.category_id,
+    });
+    res.json(user);
+  } catch (error) { 
+    res.status(400).json({
+      message: "Unable to create new product",
+    })
+  }
 
-// {
-//   product_name: "Basketball",
-//   price: 200.00,
-//   stock: 3,
-//   tagIds: [1, 2, 3, 4]
-// }
+  // {
+  //   product_name: "Basketball",
+  //   price: 200.00,
+  //   stock: 3,
+  //   tagIds: [1, 2, 3, 4]
+  // }
 
   Product.create(req.body)
     .then((product) => {
@@ -70,7 +84,7 @@ router.post('/', (req, res) => {
 });
 
 // update product
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
   // update product data
   Product.update(req.body, {
     where: {
@@ -111,8 +125,14 @@ router.put('/:id', (req, res) => {
     });
 });
 
-router.delete('/:id', (req, res) => {
-  // delete one product by its `id` value
+router.delete('/:id', async (req, res) => {
+  // ******delete one product by its `id` value
+  Product.delete({ where: { product_id: req.params.product_id } })
+    .then(() => res.end())
+    .catch(err => {
+      console.log(err);
+      res.sendStatus(400);
+    })
 });
 
 module.exports = router;
