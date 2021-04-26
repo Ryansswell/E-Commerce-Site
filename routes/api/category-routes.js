@@ -54,7 +54,7 @@ router.put('/:id', async (req, res) => {
       where: {
         id: req.params.id,
       },
-    }),
+    });
     if (!category) {
       res.status(404).json({ message: "No location found" });
       return;
@@ -72,7 +72,7 @@ router.delete('/:id', async (req, res) => {
       where: {
         id: req.params.id,
       },
-    }),
+    });
     if (!category) {
       res.status(404).json({ message: "No location found with this id" });
       return;
